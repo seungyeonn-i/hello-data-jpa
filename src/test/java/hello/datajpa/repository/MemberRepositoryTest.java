@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -252,6 +253,34 @@ class MemberRepositoryTest {
             System.out.println("member.team = " + member.getTeam().getName());
         }
 
+
+    }
+
+    @Test
+    public void queryHint() {
+        Member member1 = new Member("member1", 10);
+        //given
+        memberRepository.save(member1);
+        em.flush();
+        em.clear();
+        //when
+        Member findMember = memberRepository.findReadOnlyByUsername("member1");
+        findMember.setUsername("member2");
+        // 변경감지 - dirty checking -> 원본이 있어야함 -> 객체를 2개 관리하게 됨 -> 나쁨
+        // 조회용으로 최적화 하기위해서는? -> readOnly -> setUsername 무시
+
+        em.flush();
+    }
+
+    @Test
+    public void lock() {
+        Member member1 = new Member("member1", 10);
+        //given
+        memberRepository.save(member1);
+        em.flush();
+        em.clear();
+        //when
+        List<Member> result = memberRepository.findLockByUsername("member1");
     }
 
 
